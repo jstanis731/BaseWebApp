@@ -1,23 +1,6 @@
-// $(document).ready(function(){
-//  getWeather();
-// }) 
-
-function getWeather(searchQuery) {
-  var url  = "https://api.openweathermap.org/data/2.5/weather?q="+searchQuery+"&units=imperial&APPID="+apiKey;
-
-  $(".city").text("");
-  $(".temp").text("");
-  $(".error-message").text("");
-
-  $.ajax(url,{success: function(data){
-    console.log(data);
-    $(".city").text(data.name);
-    $(".temp").text(data.main.temp);
-  }, error: function(error) {
-    $(".error-message").text("An error occured");
-  }
+$(document).ready(function(){
+  getPosts();
 });
-}
 
 function handleSignIn() {
   var provider = new firebase.auth.GoogleAuthProvider();
@@ -40,7 +23,40 @@ function handleSignIn() {
   });
 }
 
-function searchWeather() {
-  var searchQuery = $(".search").val();
-  getWeather(searchQuery);
+function addMessage(postTitle,postBody) {
+  var postData = {
+    title: postTitle,
+    body: postBody
+  };
+
+  var database = firebase.database().ref("posts");
+
+  var newPostRef = database.push();
+  newPostRef.set(postData, function(error) {
+    if (error) {
+      // The write failed...
+    } else {
+      window.location.reload();
+    }
+  });
+} 
+
+function handleMessageFormSubmit(){
+  var postTitle = $("#post-title").val();
+  var postBody = $("#post-body").val();
+  addMessage(postTitle,postBody);
+}
+
+function getPosts(){
+
+  return firebase.database().ref("posts").once('value').then(function(snapshot) {
+    var posts = snapshot.val();
+    console.log(posts); 
+    
+    for(var postKey in posts) {
+      var post = posts[postKey];
+      $("post-listing").append("<div>"+post.title+" - "+post.body+"</div>");
+    }
+  });
+
 }
